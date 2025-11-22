@@ -19,7 +19,6 @@ func NewOrderHandler(db *gorm.DB) *OrderHandler {
 }
 
 type CreateOrderRequest struct {
-	AccountID  uint        `json:"account_id" binding:"required"`
 	Instrument string      `json:"instrument" binding:"required"`
 	Side       models.Side `json:"side" binding:"required"`
 	Price      float64     `json:"price" binding:"required"`
@@ -33,13 +32,19 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
+	accountID, exists := c.Get("account_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	if req.Side != models.SideBuy && req.Side != models.SideSell {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "side must be BUY or SELL"})
 		return
 	}
 
 	order := models.Order{
-		AccountID:  req.AccountID,
+		AccountID:  accountID.(uint),
 		Instrument: req.Instrument,
 		Side:       req.Side,
 		Price:      req.Price,
