@@ -1,0 +1,171 @@
+{
+  "info": {
+    "name": "CLOB API",
+    "_postman_id": "c0a3dd7e-9f74-49e6-9e21-8351d2a9dfbd",
+    "description": "Central Limit Order Book API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Healthcheck",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Che\",\n  \"last_name\": \"Didy\",\n  \"email\": \"che@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save JWT token",
+                  "var json = pm.response.json();",
+                  "if (json.token) {",
+                  "   pm.environment.set('token', json.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"che@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "Create Account (Auth Required)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Alice\",\n  \"last_name\": \"Trader\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts",
+              "host": ["{{base_url}}"],
+              "path": ["accounts"]
+            }
+          }
+        },
+        {
+          "name": "List Accounts (Auth Required)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/accounts",
+              "host": ["{{base_url}}"],
+              "path": ["accounts"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order (Auth Required)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instrument\": \"BTC/BRL\",\n  \"side\": \"BUY\",\n  \"price\": 500000,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Order (Auth Required)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/:id/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["orders", ":id", "cancel"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}
