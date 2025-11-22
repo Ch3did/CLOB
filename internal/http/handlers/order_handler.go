@@ -8,15 +8,20 @@ import (
 	"gorm.io/gorm"
 
 	"CLOB/internal/http/utils"
+	"CLOB/internal/services"
 	"CLOB/models"
 )
 
 type OrderHandler struct {
-	db *gorm.DB
+	db     *gorm.DB
+	engine *services.MatchingEngine
 }
 
 func NewOrderHandler(db *gorm.DB) *OrderHandler {
-	return &OrderHandler{db: db}
+	return &OrderHandler{
+		db:     db,
+		engine: services.NewMatchingEngine(db),
+	}
 }
 
 type CreateOrderRequest struct {
@@ -36,8 +41,8 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	accountID, exists := c.Get("account_id")
-	if !exists {
+	accountID, ok := utils.GetAccountIDFromContext(c)
+	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
@@ -48,7 +53,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	}
 
 	order := models.Order{
-		AccountID:  accountID.(uint),
+		AccountID:  accountID,
 		Instrument: req.Instrument,
 		Side:       req.Side,
 		Price:      req.Price,
@@ -60,10 +65,24 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	// TODO:
-	// aqui depois entra a lógica do matching engine
+	match, err := h.engine.MatchOrder(c.Request.Context(), &order)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusCreated, gin.H{
+				"order":         order,
+				"matched_order": nil,
+			})
+			return
+		}
 
-	c.JSON(http.StatusCreated, order)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to search opposite order"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"order":         order,
+		"matched_order": match,
+	})
 }
 
 func (h *OrderHandler) CancelOrder(c *gin.Context) {
