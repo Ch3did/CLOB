@@ -20,6 +20,7 @@ func NewRouter(db *gorm.DB) *gin.Engine {
 	accountHandler := handlers.NewAccountHandler(db)
 	orderHandler := handlers.NewOrderHandler(db)
 	balanceHandler := handlers.NewBalanceHandler(db)
+	tradeHandler := handlers.NewTradeHandler(db)
 
 	// Auth
 	r.POST("/account/register", accountHandler.CreateAccount)
@@ -40,5 +41,8 @@ func NewRouter(db *gorm.DB) *gin.Engine {
 	authorized.GET("/balances", balanceHandler.List)
 	authorized.GET("/balances/:id", balanceHandler.GetOne)
 
+	//Trade
+	authorized.GET("/trades", tradeHandler.ListTrades)
+	authorized.GET("/trades/:id", tradeHandler.GetTrade)
 	return r
 }
