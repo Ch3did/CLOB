@@ -1,120 +1,48 @@
 {
   "info": {
     "name": "CLOB API",
-    "_postman_id": "c0a3dd7e-9f74-49e6-9e21-8351d2a9dfbd",
-    "description": "Central Limit Order Book API Collection",
+    "_postman_id": "b85b4bb1-0f13-4f05-a313-f1d54c05b492",
+    "description": "Postman collection para sua API CLOB em Go + Gin",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Healthcheck",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/health",
-          "host": ["{{base_url}}"],
-          "path": ["health"]
-        }
-      }
-    },
-    {
       "name": "Auth",
       "item": [
         {
-          "name": "Register",
+          "name": "Signup",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first_name\": \"Che\",\n  \"last_name\": \"Didy\",\n  \"email\": \"che@example.com\",\n  \"password\": \"secret123\"\n}"
+              "raw": "{\n  \"first_name\": \"Pedro\",\n  \"last_name\": \"Chedid\",\n  \"email\": \"che@example.com\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "url": {
-              "raw": "{{base_url}}/auth/register",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "register"]
-            }
+            "url": "{{base_url}}/api/auth/signup"
           }
         },
         {
           "name": "Login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Save JWT token",
-                  "var json = pm.response.json();",
-                  "if (json.token) {",
-                  "   pm.environment.set('token', json.token);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"che@example.com\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"che@example.com\",\n  \"password\": \"secret123\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "login"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Accounts",
-      "item": [
-        {
-          "name": "Create Account (Auth Required)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"first_name\": \"Alice\",\n  \"last_name\": \"Trader\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"secret123\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/accounts",
-              "host": ["{{base_url}}"],
-              "path": ["accounts"]
-            }
-          }
-        },
-        {
-          "name": "List Accounts (Auth Required)",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/accounts",
-              "host": ["{{base_url}}"],
-              "path": ["accounts"]
-            }
-          }
+            "url": "{{base_url}}/api/auth/login"
+          },
+          "response": []
         }
       ]
     },
@@ -122,42 +50,159 @@
       "name": "Orders",
       "item": [
         {
-          "name": "Create Order (Auth Required)",
+          "name": "Create Order",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"instrument\": \"BTC/BRL\",\n  \"side\": \"BUY\",\n  \"price\": 500000,\n  \"quantity\": 1\n}"
+              "raw": "{\n  \"instrument\": \"BTC-BRL\",\n  \"side\": \"BUY\",\n  \"price\": 350000,\n  \"quantity\": 0.01\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/orders",
-              "host": ["{{base_url}}"],
-              "path": ["orders"]
-            }
+            "url": "{{base_url}}/api/orders"
           }
         },
         {
-          "name": "Cancel Order (Auth Required)",
+          "name": "List Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/orders"
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/orders/{{order_id}}"
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/orders/{{order_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trades",
+      "item": [
+        {
+          "name": "List Trades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/trades"
+          }
+        },
+        {
+          "name": "Get Trade by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/trades/{{trade_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Balances",
+      "item": [
+        {
+          "name": "List Balances",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/balances"
+          }
+        },
+        {
+          "name": "Deposit",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "url": {
-              "raw": "{{base_url}}/orders/:id/cancel",
-              "host": ["{{base_url}}"],
-              "path": ["orders", ":id", "cancel"]
-            }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset\": \"BRL\",\n  \"amount\": 1000\n}"
+            },
+            "url": "{{base_url}}/api/balances/deposit"
+          }
+        },
+        {
+          "name": "Withdraw",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset\": \"BRL\",\n  \"amount\": 500\n}"
+            },
+            "url": "{{base_url}}/api/balances/withdraw"
           }
         }
       ]
     }
   ],
-  "event": [],
   "variable": [
     {
       "key": "base_url",
@@ -165,6 +210,14 @@
     },
     {
       "key": "token",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    },
+    {
+      "key": "trade_id",
       "value": ""
     }
   ]
