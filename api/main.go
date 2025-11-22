@@ -3,25 +3,25 @@ package main
 import (
 	"log"
 
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-
-	"central_limit_order_book/models"
+	"CLOB/internal/config"
+	"CLOB/internal/database"
+	"CLOB/internal/http"
 )
 
 func main() {
-	db, err := gorm.Open(sqlite.Open("clob.db"), &gorm.Config{})
+
+	cfg := config.Load()
+
+	db, err := database.NewPostgresDB(cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	err = db.AutoMigrate(
-		&models.Account{},
-		&models.Balance{},
-		&models.Order{},
-		&models.Trade{},
-	)
-	if err != nil {
-		log.Fatal(err)
+	router := http.NewRouter(db)
+
+	log.Println("Server running on port", cfg.AppPort)
+
+	if err := router.Run(":" + cfg.AppPort); err != nil {
+		log.Fatalf("server failed: %v", err)
 	}
 }
