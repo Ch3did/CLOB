@@ -31,6 +31,8 @@ func NewRouter(db *gorm.DB) *gin.Engine {
 	// Order
 	authorized.POST("/orders", orderHandler.CreateOrder)
 	authorized.DELETE("/orders/:id", orderHandler.CancelOrder)
+	authorized.GET("/orders", orderHandler.ListOrders)
+	authorized.GET("/orders/:id", orderHandler.GetOrder)
 
 	//Balace
 	authorized.POST("/balances/credit", balanceHandler.Credit)
