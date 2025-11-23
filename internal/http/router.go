@@ -36,10 +36,10 @@ func NewRouter(db *gorm.DB) *gin.Engine {
 	authorized.GET("/orders/:id", orderHandler.GetOrder)
 
 	//Balace
-	authorized.POST("/balances/credit", balanceHandler.Credit)
-	authorized.POST("/balances/debit", balanceHandler.Debit)
-	authorized.GET("/balances", balanceHandler.List)
-	authorized.GET("/balances/:id", balanceHandler.GetOne)
+	authorized.POST("/balance/credit", balanceHandler.Credit)
+	authorized.POST("/balance/debit", balanceHandler.Debit)
+	authorized.GET("/balance", balanceHandler.List)
+	authorized.GET("/balance/:id", balanceHandler.GetOne)
 
 	//Trade
 	authorized.GET("/trades", tradeHandler.ListTrades)
