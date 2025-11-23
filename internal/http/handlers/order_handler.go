@@ -143,7 +143,7 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 }
 
 func (h *OrderHandler) ListOrders(c *gin.Context) {
-	accountID, ok := utils.GetAccountIDFromContext(c)
+	_, ok := utils.GetAccountIDFromContext(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -151,8 +151,7 @@ func (h *OrderHandler) ListOrders(c *gin.Context) {
 
 	side := c.Query("side") // "BUY" ou "SELL"
 
-	query := h.db.Model(&models.Order{}).
-		Where("account_id = ?", accountID)
+	query := h.db.Model(&models.Order{})
 
 	if side != "" {
 		query = query.Where("side = ?", side)
