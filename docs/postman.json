@@ -94,8 +94,9 @@
 						"method": "POST",
 						"header": [
 							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
+								"key": "",
+								"value": "",
+								"disabled": true
 							}
 						],
 						"body": {
@@ -292,7 +293,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\"asset\":\"BRL\",\"amount\":1000}",
+							"raw": "{\"asset\":\"BTC\",\"amount\":1000}",
 							"options": {
 								"raw": {
 									"language": "json"
