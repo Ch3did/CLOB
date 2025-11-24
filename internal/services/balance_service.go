@@ -18,6 +18,28 @@ func NewBalanceService(db *gorm.DB) *BalanceService {
 	return &BalanceService{db: db}
 }
 
+func (s *BalanceService) LockToTrade(
+	ctx context.Context,
+	accountID uint,
+	asset string,
+	amount float64,
+) error {
+	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		bal, err := s.getOrCreate(ctx, tx, accountID, asset)
+		if err != nil {
+			return err
+		}
+
+		if bal.Locked < amount {
+			return fmt.Errorf("insufficient locked balance for account %d, asset %s", accountID, asset)
+		}
+
+		bal.Locked -= amount
+
+		return tx.Save(bal).Error
+	})
+}
+
 func (s *BalanceService) getOrCreate(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -34,7 +56,8 @@ func (s *BalanceService) getOrCreate(
 		bal = models.Balance{
 			AccountID: accountID,
 			Asset:     asset,
-			Amount:    0,
+			Available: 0,
+			Locked:    0,
 		}
 		if err := tx.Create(&bal).Error; err != nil {
 			return nil, err
@@ -60,7 +83,7 @@ func (s *BalanceService) Credit(
 			return err
 		}
 
-		bal.Amount += amount
+		bal.Available += amount
 		return tx.Save(bal).Error
 	})
 }
@@ -77,11 +100,11 @@ func (s *BalanceService) Debit(
 			return err
 		}
 
-		if bal.Amount < amount {
-			return fmt.Errorf("insufficient balance for account %d, asset %s", accountID, asset)
+		if bal.Available < amount {
+			return fmt.Errorf("insufficient available balance for account %d, asset %s", accountID, asset)
 		}
 
-		bal.Amount -= amount
+		bal.Available -= amount
 		return tx.Save(bal).Error
 	})
 }
