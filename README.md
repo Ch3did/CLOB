@@ -1,4 +1,4 @@
-# CLOB Matching Engine -- README
+# CLOB Matching Engine
 
 ## Overview
 
