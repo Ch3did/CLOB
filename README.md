@@ -92,8 +92,6 @@ Response:
 
 ## 🧩 Application Flow
 
-This service implements a simple CLOB (Central Limit Order Book) with balances and trades. A typical flow is:
-
 1. **Register and authenticate**
    - Create an account via the auth endpoint.
    - Log in to obtain a JWT token.
