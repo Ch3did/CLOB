@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -13,14 +14,17 @@ import (
 )
 
 type OrderHandler struct {
-	db     *gorm.DB
-	engine *services.MatchingEngine
+	db           *gorm.DB
+	orderService *services.OrderService
 }
 
 func NewOrderHandler(db *gorm.DB) *OrderHandler {
+	engine := services.NewMatchingEngine(db)
+	orderService := services.NewOrderService(db, engine)
+
 	return &OrderHandler{
-		db:     db,
-		engine: services.NewMatchingEngine(db),
+		db:           db,
+		orderService: orderService,
 	}
 }
 
@@ -29,9 +33,6 @@ type CreateOrderRequest struct {
 	Side       models.Side `json:"side" binding:"required"`
 	Price      float64     `json:"price" binding:"required"`
 	Quantity   float64     `json:"quantity" binding:"required"`
-}
-
-type CancelOrderRequest struct {
 }
 
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
@@ -47,35 +48,33 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	if req.Side != models.SideBuy && req.Side != models.SideSell {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "side must be BUY or SELL"})
-		return
-	}
+	ctx := c.Request.Context()
 
-	order := models.Order{
-		AccountID:  accountID,
-		Instrument: req.Instrument,
-		Side:       req.Side,
-		Price:      req.Price,
-		Quantity:   req.Quantity,
-	}
-
-	if err := h.db.Create(&order).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create order"})
-		return
-	}
-
-	match, err := h.engine.MatchOrder(c.Request.Context(), &order)
+	order, match, err := h.orderService.CreateOrder(
+		ctx,
+		accountID,
+		req.Instrument,
+		req.Side,
+		req.Price,
+		req.Quantity,
+	)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusCreated, gin.H{
-				"order":         order,
-				"matched_order": nil,
-			})
+		msg := err.Error()
+
+		if strings.Contains(msg, "side must be BUY or SELL") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "side must be BUY or SELL"})
+			return
+		}
+		if strings.Contains(msg, "insufficient balance") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "insufficient balance"})
+			return
+		}
+		if strings.Contains(msg, "invalid instrument") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid instrument"})
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to search opposite order"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create order"})
 		return
 	}
 
@@ -100,40 +99,29 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 	}
 	orderID := uint(idUint64)
 
-	var order models.Order
-	if err := h.db.
-		Where("id = ? AND account_id = ?", orderID, accountID).
-		First(&order).Error; err != nil {
+	ctx := c.Request.Context()
 
-		if err == gorm.ErrRecordNotFound {
+	if err := h.orderService.CancelOrder(ctx, accountID, orderID); err != nil {
+		msg := err.Error()
+
+		switch {
+		case strings.Contains(msg, "order not found"):
 			c.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
 			return
+		case strings.Contains(msg, "order already has executed trades"):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "order already has executed trades and cannot be canceled",
+			})
+			return
+		case strings.Contains(msg, "locked balance too low for cancel"):
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "inconsistent locked balance for this order",
+			})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to cancel order"})
+			return
 		}
-
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch order"})
-		return
-	}
-
-	var tradeCount int64
-	if err := h.db.
-		Model(&models.Trade{}).
-		Where("buy_order_id = ? OR sell_order_id = ?", order.ID, order.ID).
-		Count(&tradeCount).Error; err != nil {
-
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check trades for order"})
-		return
-	}
-
-	if tradeCount > 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "order already has executed trades and cannot be canceled",
-		})
-		return
-	}
-
-	if err := h.db.Delete(&order).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to cancel order"})
-		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{

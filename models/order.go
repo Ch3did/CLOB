@@ -17,4 +17,5 @@ type Order struct {
 	Side       Side    `gorm:"type:varchar(4);not null"`
 	Price      float64 `gorm:"not null"`
 	Quantity   float64 `gorm:"not null"`
+	Status     string  `gorm:"size:20;default:'open'"`
 }
