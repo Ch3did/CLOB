@@ -90,7 +90,7 @@ Response:
 
 ------------------------------------------------------------------------
 
-## Application Flow
+## 🧩 Application Flow
 
 This service implements a simple CLOB (Central Limit Order Book) with balances and trades. A typical flow is:
 
