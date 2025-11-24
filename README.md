@@ -85,7 +85,7 @@ Response:
 
 ### Balance
 
--   `(account_id, asset, amount)`
+-   control account balance
 
 ------------------------------------------------------------------------
 
