@@ -1,4 +1,4 @@
-# CLOB Matching Engine
+# CLOB
 
 ## Overview
 
@@ -7,7 +7,6 @@ with: - Limit orders (BUY/SELL) - Matching engine (price/time
 priority) - Trade generation - Balance updates per trade -
 Authentication (JWT) - REST API (Gin) - PostgreSQL + GORM - Docker
 Compose setup
-
 
 ------------------------------------------------------------------------
 
